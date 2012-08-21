@@ -13,6 +13,7 @@ namespace MonitorServerApplication
     public partial class MainServerForm : Form
     {
         ServerLog curentLog;
+        ServerMainThread serverThread;
         public MainServerForm()
         {
             InitializeComponent();
@@ -21,6 +22,7 @@ namespace MonitorServerApplication
         private void bStart_Click(object sender, EventArgs e)
         {
             curentLog = new ServerListLog();
+            serverThread = new ServerMainThread(5555);
         }
     }
 }

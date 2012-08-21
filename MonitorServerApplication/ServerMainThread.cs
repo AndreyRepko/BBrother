@@ -2,7 +2,7 @@
 
 public class ServerMainThread
 {
-    public ServerMainThread()
+    public ServerMainThread(int port)
 	{
          
 	}
