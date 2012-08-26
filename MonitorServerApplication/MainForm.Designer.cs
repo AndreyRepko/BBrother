@@ -40,16 +40,18 @@
             this.bStart.TabIndex = 0;
             this.bStart.Text = "Start";
             this.bStart.UseVisualStyleBackColor = true;
-            this.bStart.Click += new System.EventHandler(this.bStart_Click);
+            this.bStart.Click += new System.EventHandler(this.BStartClick);
             // 
             // bStop
             // 
+            this.bStop.Enabled = false;
             this.bStop.Location = new System.Drawing.Point(28, 102);
             this.bStop.Name = "bStop";
             this.bStop.Size = new System.Drawing.Size(146, 53);
             this.bStop.TabIndex = 1;
             this.bStop.Text = "Stop";
             this.bStop.UseVisualStyleBackColor = true;
+            this.bStop.Click += new System.EventHandler(this.BStopClick);
             // 
             // MainServerForm
             // 

@@ -12,17 +12,29 @@ namespace MonitorServerApplication
 {
     public partial class MainServerForm : Form
     {
-        ServerLog curentLog;
-        ServerMainThread serverThread;
+        ServerLog _curentLog;
+        ServerMainThread _serverThread;
         public MainServerForm()
         {
             InitializeComponent();
         }
 
-        private void bStart_Click(object sender, EventArgs e)
+        private void BStartClick(object sender, EventArgs e)
         {
-            curentLog = new ServerListLog();
-            serverThread = new ServerMainThread(5555);
+            _curentLog = new ServerListLog();
+            _serverThread = new ServerMainThread(5555);
+            _serverThread.Start();
+            bStart.Enabled = false;
+            bStop.Enabled = true;
+        }
+
+        private void BStopClick(object sender, EventArgs e)
+        {
+            _serverThread.Stop();
+            _serverThread = null;
+            bStart.Enabled = true;
+            bStop.Enabled = false;
+
         }
     }
 }
