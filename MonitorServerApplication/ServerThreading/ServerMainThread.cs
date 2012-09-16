@@ -1,26 +1,22 @@
-﻿using System;
-using System.Net;
+﻿using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MonitorServerApplication
+namespace MonitorServerApplication.ServerThreading
 {
     public class ServerMainThread
     {
-        TcpListener _listener; // Объект, принимающий TCP-клиентов
-        private Task someTask ;
+        readonly TcpListener _listener; // Объект, принимающий TCP-клиентов
+        private Task _someTask;
         public bool IsNeedToStop = false;
+        private ClientList _clients;
         public ServerMainThread(int port)
         {
-            _listener = new TcpListener(IPAddress.Any,port);
+            _listener = new TcpListener(IPAddress.Any, port);
             //33, 34
         }
 
-        static void ClientThread(Object StateInfo)
-        {
-            new Client((TcpClient)StateInfo);
-        }
 
         void DoAcceptConnectionsAsync()
         {
@@ -29,39 +25,50 @@ namespace MonitorServerApplication
                 if (_listener.Pending())
                 {
                     // Принимаем нового клиента
-                    var ClientThread1 = _listener.AcceptTcpClient();
+                    var clientThread1 = _listener.AcceptTcpClient();
+                    var currentClient = new ClientThread(clientThread1);
                     // Создаем поток
-                    Thread Thread = new Thread(new ParameterizedThreadStart(ClientThread));
+                    var thread = new Thread(currentClient.Execute);
                     // И запускаем этот поток, передавая ему принятого клиента
-                    Thread.Start(ClientThread1);;
+                    thread.Start();
+                    _clients.Add(currentClient);
+                    _clients.RemoveInnactive();
                 }
                 else
                 {
                     Thread.Sleep(10);
                 }
             }
+            _clients.Stop();
+
+            while (_clients.Count != 0)
+            {
+                _clients.RemoveInnactive();
+                Thread.Sleep(10);
+            }
         }
 
         async Task DoAcceptConnections()
         {
-            someTask = Task.Factory.StartNew(() => DoAcceptConnectionsAsync());
-            await someTask; 
+            _someTask = Task.Factory.StartNew(DoAcceptConnectionsAsync);
+            await _someTask;
         }
 
         public async void Start()
         {
             _listener.Start();
+            _clients = new ClientList();
             await DoAcceptConnections();
         }
 
         public void Stop()
         {
             IsNeedToStop = true;
-            someTask.Wait(10000);
+            _someTask.Wait(10000);
 
-            if (!someTask.IsCompleted)
+            if (!_someTask.IsCompleted)
             {
-                throw new System.ArgumentException("Stoping timeout!"); 
+                throw new System.ArgumentException("Stoping timeout!");
             }
             _listener.Stop();
         }

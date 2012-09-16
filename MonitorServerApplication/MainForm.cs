@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MonitorServerApplication.Packets;
+using MonitorServerApplication.ServerThreading;
 
 namespace MonitorServerApplication
 {
@@ -35,6 +37,11 @@ namespace MonitorServerApplication
             bStart.Enabled = true;
             bStop.Enabled = false;
 
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            DataDecoder.DoTestChiper();
         }
     }
 }
