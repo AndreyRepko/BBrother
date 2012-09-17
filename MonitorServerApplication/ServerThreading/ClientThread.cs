@@ -164,6 +164,9 @@ namespace MonitorServerApplication.ServerThreading
                         //кусок архива
                         case OldProtocolConst.Con_Data_Archive:
                             throw new SystemException("Not implement yet");
+
+                            #region ARCHIVE commented
+
                             /* sComm = AnsiString("Архивное сообщение.");
                             // Вычитываем количество байт на будущее
                             if( ReadData(clSock, (char*)&tc, 4) == 0 )
@@ -296,8 +299,14 @@ namespace MonitorServerApplication.ServerThreading
                             if ( IsShouldFinishWork )  loop_ = false;
                             //конец архивной записи*/
                             //break;
+
+                            #endregion
+
                         case OldProtocolConst.Con_File:
                             throw new SystemException("Not implement yet");
+
+                            #region FILES commented
+
                             /*  clData->SendCurrentFiles(0);
                                 if( ReadData(clSock, (char*)&tc, 4) == 0 )
                                  {
@@ -361,7 +370,10 @@ namespace MonitorServerApplication.ServerThreading
                                  {
                                     clData->SynForScreen("Обновление не удалось");
                                  }*/
-                           // break;
+                            // break;
+
+                            #endregion
+
                         case OldProtocolConst.Con_Sett_Reqest:
                             SendSettings();
                             break;
@@ -369,13 +381,6 @@ namespace MonitorServerApplication.ServerThreading
                             //TODO: LOg something here
                             throw new SystemException("Not implement yet");
                     }
-                    /*   if ( !IsSend )
-                       {
-                         loop_ = false;
-                         clData->SynForScreen("Send Failed! Socked killed! TO19");
-                       }*/
-                    //    } //if read_data
-                    //       Sleep(100);
                 }
                 catch (IOException)
                 {
