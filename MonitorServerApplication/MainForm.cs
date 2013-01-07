@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MonitorServerApplication.Loging;
 using MonitorServerApplication.Packets;
 using MonitorServerApplication.ServerThreading;
 
@@ -32,16 +33,57 @@ namespace MonitorServerApplication
 
         private void BStopClick(object sender, EventArgs e)
         {
+            StopServer();
+        }
+
+        private void StopServer()
+        {
+            if (_serverThread == null) 
+                 return;
+
             _serverThread.Stop();
             _serverThread = null;
             bStart.Enabled = true;
             bStop.Enabled = false;
-
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             DataDecoder.DoTestChiper();
+        }
+
+        private void LogTimerTick(object sender, EventArgs e)
+        {
+            if (_serverThread != null)
+                if (_serverThread.LogItems != null)
+                {
+                    //No cash - no hash
+                    if (_serverThread.LogItems.Count == 0)
+                        return;
+
+                    LogView.BeginUpdate();
+                    try
+                    {
+                        LogItem item;
+                        while (_serverThread.LogItems.TryDequeue(out item))
+                        {
+                            var logitem = LogView.Items.Add(item.Time.ToString());
+                            logitem.SubItems.Add(item.IP);
+                            logitem.SubItems.Add(item.Message);
+                        }
+
+                    }
+                    finally
+                    {
+                        LogView.EndUpdate();
+                        LogView.AutoResizeColumn(2, ColumnHeaderAutoResizeStyle.ColumnContent);
+                    }
+                }
+        }
+
+        private void MainServerForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            StopServer();
         }
     }
 }

@@ -62,6 +62,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Loging\LogItem.cs" />
     <Compile Include="Packets\PacketData.cs" />
     <Compile Include="ServerThreading\ClientList.cs" />
     <Compile Include="ServerThreading\ClientThread.cs" />

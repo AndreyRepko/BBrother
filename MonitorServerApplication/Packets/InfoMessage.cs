@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MonitorServerApplication
 {
-    class InfoMessage
+    public class InfoMessage
     {
         public int kod;
         public DateTime time;

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MonitorServerApplication.Packets
 {
-    class PacketData
+    public class PacketData
     {
         public int TaskId;
         public String NameExe; //имя exe файла
