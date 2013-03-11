@@ -20,15 +20,43 @@ namespace BBFrontend
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Boolean IsConnected = false;
+        private Npgsql.NpgsqlConnection PG;
+
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void ConnectButtonClick(object sender, RoutedEventArgs e)
         {
-            var pg = new Npgsql.NpgsqlConnection();
-            pg.Open();
+            if (!IsConnected)
+            {
+                var pg_con = new Npgsql.NpgsqlConnectionStringBuilder();
+                pg_con.Host = "127.0.0.1";
+                pg_con.UserName = "bbrother_admin";
+                pg_con.Password = "qwerty";
+                pg_con.Database = "bbrother";
+                PG = new Npgsql.NpgsqlConnection(pg_con.ConnectionString);
+                PG.Open();
+                IsConnected = true;
+                ConnectButton.Content = "Diconnect";
+            }
+            else
+            {
+                IsConnected = false;
+                PG.Close();
+                ConnectButton.Content = "Connect to DB...";
+            }
+        }
+
+        private void RefreshButtonClick(object sender, RoutedEventArgs e)
+        {
+            var pgQuery = new Npgsql.NpgsqlCommand("SELECT * FROM info_log");
+            pgQuery.Connection = PG;
+            var reader = pgQuery.ExecuteReader();
+            ServerLogGrid.ItemsSource = reader;
+            ServerLogGrid.Items.Refresh();
         }
     }
 }
