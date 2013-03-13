@@ -50,6 +50,9 @@
     <Reference Include="crypto">
       <HintPath>..\..\..\Org.BouncyCastle.Utilities\crypto\bin\Debug\crypto.dll</HintPath>
     </Reference>
+    <Reference Include="Npgsql">
+      <HintPath>..\..\..\Npgsql2.0.12.0-bin-ms.net4.0\Npgsql.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
