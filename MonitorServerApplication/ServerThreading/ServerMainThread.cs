@@ -12,25 +12,21 @@ namespace MonitorServerApplication.ServerThreading
     {
         readonly TcpListener _listener; // Объект, принимающий TCP-клиентов
         private Task _someTask;
+        private Task _writeToDBTask;
+
         public bool IsNeedToStop = false;
+
         private ClientList _clients;
+        public ServerWriter _DBWriter;
         public ServerMainThread(int port)
         {
             _listener = new TcpListener(IPAddress.Any, port);
             //33, 34
         }
 
-        public ConcurrentQueue<PacketData> Packets;
-        public ConcurrentQueue<InfoMessage> InfoMessages;
-        public ConcurrentQueue<LogItem> LogItems;
-
         void DoAcceptConnectionsAsync()
         {
-            Packets = new ConcurrentQueue<PacketData>();
-            InfoMessages = new ConcurrentQueue<InfoMessage>();
-            LogItems = new ConcurrentQueue<LogItem> ();
-
-            LogItems.Enqueue(new LogItem("Server is starting now","no ip"));
+            _DBWriter.Log(new LogItem("Server is starting now", "no ip"));
 
             while (!IsNeedToStop)
             {
@@ -38,8 +34,8 @@ namespace MonitorServerApplication.ServerThreading
                 {
                     // Принимаем нового клиента
                     var clientThread1 = _listener.AcceptTcpClient();
-                    LogItems.Enqueue(new LogItem("New client is coming!", ((IPEndPoint)clientThread1.Client.RemoteEndPoint).Address.ToString()));
-                    var currentClient = new ClientThread(clientThread1, ref Packets, ref InfoMessages, ref LogItems);
+                    _DBWriter.Log(new LogItem("New client is coming!", ((IPEndPoint)clientThread1.Client.RemoteEndPoint).Address.ToString()));
+                    var currentClient = new ClientThread(clientThread1, ref _DBWriter);
                     // Создаем поток
                     var thread = new Thread(currentClient.Execute);
                     // И запускаем этот поток, передавая ему принятого клиента
@@ -60,11 +56,26 @@ namespace MonitorServerApplication.ServerThreading
                 Thread.Sleep(10);
             }
 
-            while ((Packets.Count != 0) || (InfoMessages.Count !=0))
+            /*while ((_DBWriter._packets.Count != 0) || (_DBWriter.InfoMessages.Count != 0))
             {
                 Thread.Sleep(10);
-            }
+            }*/
 
+        }
+
+        private void StartDBWriter()
+        {
+            while (!IsNeedToStop)
+            {
+                _DBWriter.Save();
+                Thread.Sleep(10);
+            }            
+        }
+
+        async Task DoCreateDBWriter()
+        {
+            _writeToDBTask = Task.Factory.StartNew(DoAcceptConnectionsAsync);
+            await _writeToDBTask;            
         }
 
         async Task DoAcceptConnections()
@@ -73,12 +84,20 @@ namespace MonitorServerApplication.ServerThreading
             await _someTask;
         }
 
-        public async void Start()
+        public async void StartClients()
         {
             _listener.Start();
             _clients = new ClientList();
+            _DBWriter = new ServerWriter();
+
             await DoAcceptConnections();
         }
+
+        public async void StartWriter()
+        {
+            await DoCreateDBWriter();
+        }
+
 
         public void Stop()
         {

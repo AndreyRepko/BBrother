@@ -17,9 +17,7 @@ namespace MonitorServerApplication.ServerThreading
         private readonly NetworkStream _clientStream;
         private readonly TcpClient _client;
         private readonly string IP;
-        private readonly ConcurrentQueue<PacketData> _packets;
-        private readonly ConcurrentQueue<InfoMessage> _infoMessages;
-        private readonly ConcurrentQueue<LogItem> _log;
+        private ServerWriter _dataWriter;
 
         /// <summary>
         ///  Set it to true for thread stop
@@ -30,7 +28,7 @@ namespace MonitorServerApplication.ServerThreading
 
         private void Log(string message)
         {
-            _log.Enqueue(new LogItem(message,IP));
+            _dataWriter.Log(new LogItem(message, IP));
         }
 
         private void GetInfoMessage()
@@ -42,7 +40,7 @@ namespace MonitorServerApplication.ServerThreading
             _clientStream.Read(packetData, 0, iDataSize);
 
             var info = DataDecoder.InfoMessageDecoder(packetData);
-            _infoMessages.Enqueue(info);
+            _dataWriter.Log(info);
 
             byte[] b2 = System.Text.Encoding.GetEncoding(1251).GetBytes(OldProtocolConst.Con_OK);
             _clientStream.Write(b2, 0, 2);
@@ -113,7 +111,7 @@ namespace MonitorServerApplication.ServerThreading
             _clientStream.Read(packetData, 0, iDataSize);
 
             var packet =DataDecoder.PacketDecoder(packetData);
-            _packets.Enqueue(packet);
+            _dataWriter.Log(packet);
             
             byte[] b2 = System.Text.Encoding.ASCII.GetBytes(OldProtocolConst.Con_OK);
             _clientStream.Write(b2, 0, 2);
@@ -213,11 +211,9 @@ namespace MonitorServerApplication.ServerThreading
         }
 
         // Конструктор класса. Ему нужно передавать принятого клиента от TcpListener
-        public ClientThread(TcpClient client, ref ConcurrentQueue<PacketData> pack, ref ConcurrentQueue<InfoMessage> info, ref ConcurrentQueue<LogItem> log)
+        public ClientThread(TcpClient client, ref ServerWriter writer)
         {
-            _packets = pack;
-            _infoMessages = info;
-            _log = log;
+            _dataWriter = writer;
 
             _client = client;
             _clientStream = client.GetStream();

@@ -26,7 +26,8 @@ namespace MonitorServerApplication
         {
             _curentLog = new ServerListLog();
             _serverThread = new ServerMainThread(5555);
-            _serverThread.Start();
+            _serverThread.StartClients();
+            _serverThread.StartWriter();
             bStart.Enabled = false;
             bStop.Enabled = true;
         }
@@ -54,18 +55,18 @@ namespace MonitorServerApplication
 
         private void LogTimerTick(object sender, EventArgs e)
         {
-            if (_serverThread != null)
-                if (_serverThread.LogItems != null)
+           /* if (_serverThread != null)
+                if (_serverThread._DBWriter.LogItems != null)
                 {
                     //No cash - no hash
-                    if (_serverThread.LogItems.Count == 0)
+                    if (_serverThread._DBWriter.LogItems.Count == 0)
                         return;
 
                     LogView.BeginUpdate();
                     try
                     {
                         LogItem item;
-                        while (_serverThread.LogItems.TryDequeue(out item))
+                        while (_serverThread._DBWriter.LogItems.TryDequeue(out item))
                         {
                             var logitem = LogView.Items.Add(item.Time.ToString());
                             logitem.SubItems.Add(item.IP);
@@ -78,7 +79,7 @@ namespace MonitorServerApplication
                         LogView.EndUpdate();
                         LogView.AutoResizeColumn(2, ColumnHeaderAutoResizeStyle.ColumnContent);
                     }
-                }
+                }*/
         }
 
         private void MainServerForm_FormClosing(object sender, FormClosingEventArgs e)
