@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using MonitorServerApplication.DB;
 using MonitorServerApplication.Loging;
 using MonitorServerApplication.Packets;
@@ -43,8 +44,17 @@ namespace MonitorServerApplication.ServerThreading
                 if (_logItems.TryDequeue(out item))
                 {
                     _writer.SaveItem(item);
+
+                    OnLogItemSaveEvent(new LogItemEventArgs(item));
                 }
             }
+        }
+        public event EventHandler<LogItemEventArgs> LogItemSaveEvent;
+
+        protected virtual void OnLogItemSaveEvent(LogItemEventArgs e)
+        {
+            EventHandler<LogItemEventArgs> handler = LogItemSaveEvent;
+            if (handler != null) handler(this, e);
         }
     }
 }

@@ -74,7 +74,7 @@ namespace MonitorServerApplication.ServerThreading
 
         async Task DoCreateDBWriter()
         {
-            _writeToDBTask = Task.Factory.StartNew(DoAcceptConnectionsAsync);
+            _writeToDBTask = Task.Factory.StartNew(StartDBWriter);
             await _writeToDBTask;            
         }
 

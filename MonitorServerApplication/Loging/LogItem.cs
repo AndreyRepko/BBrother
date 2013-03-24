@@ -18,4 +18,13 @@ namespace MonitorServerApplication.Loging
             Time = DateTime.Now;
         }
     }
+
+    public class LogItemEventArgs : EventArgs
+    {
+        public LogItem item;
+        public LogItemEventArgs(LogItem msg)
+        {
+            item = msg;
+        }
+    }
 }

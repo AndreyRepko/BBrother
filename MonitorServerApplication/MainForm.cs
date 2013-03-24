@@ -15,11 +15,38 @@ namespace MonitorServerApplication
 {
     public partial class MainServerForm : Form
     {
-        ServerLog _curentLog;
-        ServerMainThread _serverThread;
+        private ServerLog _curentLog;
+        private ServerMainThread _serverThread;
+
+        private BackgroundWorker _backgroundWorker;
+
         public MainServerForm()
         {
             InitializeComponent();
+            _backgroundWorker = new System.ComponentModel.BackgroundWorker();
+            _backgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+        }
+
+        private void SetText(string text)
+        {
+            // InvokeRequired required compares the thread ID of the
+            // calling thread to the thread ID of the creating thread.
+            // If these threads are different, it returns true.
+            if (this.LogView.InvokeRequired)
+            {
+                SetTextCallback d = new SetTextCallback(SetText);
+                this.Invoke(d, new object[] { text });
+            }
+            else
+            {
+                this.textBox1.Text = text;
+            }
+        }
+        void NewLogEvent(Object sender, LogItemEventArgs e)
+        {
+            var logitem = LogView.Items.Add(e.item.Time.ToString());
+            logitem.SubItems.Add(e.item.IP);
+            logitem.SubItems.Add(e.item.Message);            
         }
 
         private void BStartClick(object sender, EventArgs e)
@@ -28,6 +55,7 @@ namespace MonitorServerApplication
             _serverThread = new ServerMainThread(5555);
             _serverThread.StartClients();
             _serverThread.StartWriter();
+            _serverThread._DBWriter.LogItemSaveEvent += NewLogEvent;
             bStart.Enabled = false;
             bStop.Enabled = true;
         }
