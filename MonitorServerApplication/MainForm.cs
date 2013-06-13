@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -18,35 +19,52 @@ namespace MonitorServerApplication
         private ServerLog _curentLog;
         private ServerMainThread _serverThread;
 
+        delegate void SetItem(LogItem item);
+
         private BackgroundWorker _backgroundWorker;
+
+        private readonly ConcurrentQueue<LogItem> _logItems;
 
         public MainServerForm()
         {
             InitializeComponent();
             _backgroundWorker = new System.ComponentModel.BackgroundWorker();
-            _backgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+            _backgroundWorker.RunWorkerCompleted += this.BackgroundWorkerDoWork;
+            _logItems = new ConcurrentQueue<LogItem>();
         }
 
-        private void SetText(string text)
+        private void SetItemInvoke (LogItem item)
         {
             // InvokeRequired required compares the thread ID of the
             // calling thread to the thread ID of the creating thread.
             // If these threads are different, it returns true.
             if (this.LogView.InvokeRequired)
             {
-                SetTextCallback d = new SetTextCallback(SetText);
-                this.Invoke(d, new object[] { text });
+                var d = new SetItem(SetItemInvoke);
+                this.Invoke(d, new object[] { item });
             }
             else
             {
-                this.textBox1.Text = text;
+                var logitem = LogView.Items.Add(item.Time.ToString());
+                logitem.SubItems.Add(item.IP);
+                logitem.SubItems.Add(item.Message);
             }
         }
+
+        private void BackgroundWorkerDoWork(object sender, 
+			RunWorkerCompletedEventArgs e)
+        {
+            LogItem item;
+            while (_logItems.TryDequeue(out item))
+            {
+ 
+            }
+                
+        }
+
         void NewLogEvent(Object sender, LogItemEventArgs e)
         {
-            var logitem = LogView.Items.Add(e.item.Time.ToString());
-            logitem.SubItems.Add(e.item.IP);
-            logitem.SubItems.Add(e.item.Message);            
+            SetItemInvoke(e.item);
         }
 
         private void BStartClick(object sender, EventArgs e)

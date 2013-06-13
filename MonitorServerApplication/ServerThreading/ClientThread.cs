@@ -45,7 +45,7 @@ namespace MonitorServerApplication.ServerThreading
             byte[] b2 = System.Text.Encoding.GetEncoding(1251).GetBytes(OldProtocolConst.Con_OK);
             _clientStream.Write(b2, 0, 2);
             
-            Log("Info message arrived: "+info.Info);
+            Log("Info message arrived: "+info.Info+' '+info.kod.ToString());
         }
 
         private void SendSettings()
@@ -56,12 +56,12 @@ namespace MonitorServerApplication.ServerThreading
             int iDataSize = BitConverter.ToInt32(dataSize, 0);
             
             if (iDataSize!=4)
-                throw new SystemException("Panicum! SendSettings failed couse if size mismatch");
+                throw new SystemException("Panicum! SendSettings failed couse size is wrong");
 
             var settingsType = new byte[iDataSize];
             _clientStream.Read(settingsType, 0, iDataSize);
 
-            int iSettingsType = BitConverter.ToInt32(dataSize, 0);
+            int iSettingsType = BitConverter.ToInt32(settingsType, 0);
             
 
             var settingsSize = new byte[4];
@@ -70,11 +70,12 @@ namespace MonitorServerApplication.ServerThreading
         
             Thread.Sleep(5);
 
+            var settings = _dataWriter.GetSettings(iSettingsType);
             //TODO: Write sttings sendong block
             //clData->SendSettings(count);
 
             var confirmation = new byte[2];
-           // _clientStream.Read(confirmation, 0, 2);
+            _clientStream.Read(confirmation, 0, 2);
 
             if ((confirmation[0] == OldProtocolConst.Con_OK[0]) && 
                 (confirmation[1] == OldProtocolConst.Con_OK[1]))
@@ -427,13 +428,13 @@ namespace MonitorServerApplication.ServerThreading
                             break;
                         default:
                             //TODO: LOg something here
-                            throw new SystemException("Not implement yet");
+                            throw new SystemException("Not implement yet" + iSignature);
                     }
                 }
-                catch (IOException)
+                catch (IOException e)
                 {
                     //TODO: log exception to the log )
-                    Log("Thread are dead by IOException");
+                    Log("Thread are dead by IOException" + e.Message);
                     break;
                 }
             }

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using MonitorServerApplication.DB;
 using MonitorServerApplication.Loging;
 using MonitorServerApplication.Packets;
+using MonitorServerApplication.PacketsDefinition;
 
 namespace MonitorServerApplication.ServerThreading
 {
@@ -55,6 +56,11 @@ namespace MonitorServerApplication.ServerThreading
         {
             EventHandler<LogItemEventArgs> handler = LogItemSaveEvent;
             if (handler != null) handler(this, e);
+        }
+
+        internal Settings GetSettings(int settingsType)
+        {
+            throw new NotImplementedException();
         }
     }
 }
