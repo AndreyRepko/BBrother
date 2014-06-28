@@ -65,11 +65,12 @@ namespace MonitorServerApplication.ServerThreading
             Debug.Assert(settingsSize.Length == 4, "Length is incorrect in Count to Byte[] convertation");
             _clientStream.Write(settingsSize, 0, 4);
 
-            var byteSettings = DataEncoder.EncodeSettings(settings);
-            var byteSettingsSize = BitConverter.GetBytes(byteSettings.Length);
-            _clientStream.Write(byteSettingsSize, 0, 4);
-            _clientStream.Write(byteSettings, 0, byteSettings.Length);
-
+            foreach (var byteSetting in DataEncoder.EncodeSettings(settings))
+            {
+                var byteSettingsSize = BitConverter.GetBytes(byteSetting.Length);
+                _clientStream.Write(byteSettingsSize, 0, 4);
+                _clientStream.Write(byteSetting, 0, byteSetting.Length);
+            }
 
             var confirmation = new byte[2];
             _clientStream.Read(confirmation, 0, 2);
@@ -92,16 +93,7 @@ namespace MonitorServerApplication.ServerThreading
 
         private void GetPacketData(bool wasItTimer)
         {
-            /*if ( Sign == Con_Data_WindChng )  {
-                sComm = AnsiString("Переключение по смене окна ");
-                clData->TypPack = 10;
-                }
-             else
-            if ( Sign == Con_Data_Timer)  {
-                sComm = AnsiString("Переключение по таймеру.");
-                clData->TypPack = 12;
-                };*/
-            Log("New packet data");
+            Log(wasItTimer ? "New time packet data" : "New window change packet data");
             var dataSize = new byte[4];
             _clientStream.Read(dataSize, 0, 4);
             int iDataSize = BitConverter.ToInt32(dataSize, 0);
@@ -184,7 +176,7 @@ namespace MonitorServerApplication.ServerThreading
             size = FilesList.Count / 2;
             fileCount = BitConverter.GetBytes(size);
             //кол-во файлов     
-            _clientStream.Write(dataSize, 0, 4);
+            _clientStream.Write(fileCount, 0, 4);
 
             //собсно сами файлы  
             foreach(var _file in FilesList)

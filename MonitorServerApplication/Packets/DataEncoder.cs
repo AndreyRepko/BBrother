@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using MonitorServerApplication.DB;
 using MonitorServerApplication.PacketsDefinition;
 using Org.BouncyCastle.Crypto.Digests;
@@ -46,28 +48,27 @@ namespace MonitorServerApplication.Packets
 
         }
 
-        private static byte[] WriteBytes(out int bt, Byte[] value, KeyParameter key)
+        private static byte[] EncodeBytes(Byte[] value, KeyParameter key)
         {
-            /*if (bt + sizeof(int) > mem.Length)
-                throw new SystemException("Size of string is greater that expected");*/
-
             var chiper = new CfbDCPCipher(new BlowfishEngine(), 8);
-            chiper.Init(false, Key);
+            if (key != null)
+                chiper.Init(true, key);
+            else
+                chiper.Init(true, Key);
 
-            /*chiper.ProcessBlock()
-            var b = new byte[stringSize - 1];
-            Array.Copy(mem, bt + 4, b, 0, stringSize - 1);
-            byte[] bDecoded = Base64.Decode(b);
-            var decodedBytes = new byte[bDecoded.Length];
-            chiper.ProcessBlock(bDecoded, 0, decodedBytes, 0);
-            bt += stringSize + 4;*/
-            bt = -1;
-            return new byte[0];
+            var encodedBytes = new byte[value.Length * 2];
+            var totalBytes = chiper.ProcessBlock(value, 0, encodedBytes, 0);
+
+            var b = new byte[totalBytes];
+            Array.Copy(encodedBytes, 0, b, 0, totalBytes);
+            var encoded = Base64.Encode(b);
+            return encoded;
         }
 
-        private static String ReadString(ref int bt, Byte[] mem)
+        private static Byte[] EncodeString(string EncodeString, KeyParameter key)
         {
-            return "";//System.Text.Encoding.GetEncoding(1251).GetString(ReadBytes(ref bt, mem));
+            var bytesToEncode = System.Text.Encoding.ASCII.GetBytes(EncodeString);
+            return EncodeBytes(bytesToEncode, key);
         }
 
         private static int ReadInt(ref int bt, Byte[] mem)
@@ -94,34 +95,34 @@ namespace MonitorServerApplication.Packets
         public static InfoMessage InfoMessageDecoder(byte[] data)
         {
             var msg = new InfoMessage();
-            int bt = 0;
+            /*int bt = 0;
 
             msg.kod = ReadInt(ref bt, data);
             msg.time = ReadDateTime(ref bt, data);
-            msg.IP = ReadString(ref bt, data);
-            msg.UserName = ReadString(ref bt, data);
-            msg.Info = ReadString(ref bt, data);
+            msg.IP = EncodeString(ref bt, data);
+            msg.UserName = EncodeString(ref bt, data);
+            msg.Info = EncodeString(ref bt, data);*/
             return msg;
         }
 
         public static InfoMessage PacketMessageDecoder(byte[] data)
         {
             var msg = new InfoMessage();
-            int bt = 0;
+            /*int bt = 0;
 
             msg.kod = ReadInt(ref bt, data);
             msg.time = ReadDateTime(ref bt, data);
-            msg.IP = ReadString(ref bt, data);
-            msg.UserName = ReadString(ref bt, data);
-            msg.Info = ReadString(ref bt, data);
+            msg.IP = EncodeString(ref bt, data);
+            msg.UserName = EncodeString(ref bt, data);
+            msg.Info = EncodeString(ref bt, data);*/
             return msg;
         }
 
         public static PacketData PacketDecoder(byte[] packetData)
         {
             var packet = new PacketData();
-            int bt = 0;
-            /*packet.TaskId = ReadInt(ref bt, packetData);
+            /*int bt = 0;
+            packet.TaskId = ReadInt(ref bt, packetData);
             packet.NameExe = ReadString(ref bt, packetData);
             packet.NewExe = ReadString(ref bt, packetData);
             packet.CurUser = ReadString(ref bt, packetData);
@@ -139,10 +140,10 @@ namespace MonitorServerApplication.Packets
             return packet;
         }
 
-        public static byte[] EncodeSettings(ClientSettings settings)
+        public static IEnumerable<byte[]> EncodeSettings(ClientSettings settings)
         {
             if (settings == null) throw new ArgumentNullException("settings");
-            string ks = "ReadNewSettings2Connection_Request";
+            var ks = "ReadNewSettings2Connection_Request";
 
             byte[] bKey = System.Text.Encoding.ASCII.GetBytes(ks);
             var tiger = new TigerDigest();
@@ -152,44 +153,12 @@ namespace MonitorServerApplication.Packets
             tiger.DoFinal(bb, 0);
 
             var key = new KeyParameter(bb);
-            int size;
-            return  new byte[0];
-            /*AnsiString sstr;
 
-            TDCP_blowfish* bf;
-            TDCP_tiger* tg;
-
-            bf = new TDCP_blowfish(0);
-            tg = new TDCP_tiger(0);
-
-            for (int i = 0; i < this->sett->Count; )
+            foreach (var sett in settings.Settings)
             {
-                bf->InitStr(ks, tg->ClassType());
-
-                sstr = bf->EncryptString(this->sett->Strings[i++]);
-                size = sstr.Length();
-
-                if (WriteData(clSock, (char*)&size, sizeof(size)) != 0)
-                {
-                    break;
-                }
-                if (WriteData(clSock, sstr.c_str(), size) != 0)
-                    break;
-
-                bf->InitStr(ks, tg->ClassType());
-
-                sstr = bf->EncryptString(this->sett->Strings[i++]);
-                size = sstr.Length();
-
-                if (WriteData(clSock, (char*)&size, sizeof(size)) != 0)
-                    break;
-
-                if (WriteData(clSock, sstr.c_str(), size) != 0)
-                    break;
+                yield return DataEncoder.EncodeString(sett.FieldName, key);
+                yield return DataEncoder.EncodeString(sett.StringValue, key);
             }
-            this->sett->Clear();
-            delete bf;
-            delete tg;*/
         }
     }
 }
