@@ -1,25 +1,25 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using MonitorServerApplication.DB;
 using MonitorServerApplication.Loging;
-using MonitorServerApplication.Packets;
 using MonitorServerApplication.PacketsDefinition;
 
 namespace MonitorServerApplication.ServerThreading
 {
-    public class ServerWriter
+    public class ServerWriter : IDataWriter, IDataGetter
     {
         private readonly ConcurrentQueue<PacketData> _packets;
         private readonly ConcurrentQueue<InfoMessage> _infoMessages;
         private readonly ConcurrentQueue<LogItem> _logItems;
-        private readonly DatabaseWriter _writer;
+        private readonly DatabaseWorker _worker;
 
         public ServerWriter()
         {
             _packets = new ConcurrentQueue<PacketData>();
             _infoMessages = new ConcurrentQueue<InfoMessage>();
             _logItems = new ConcurrentQueue<LogItem>();
-            _writer = new DatabaseWriter();
+            _worker = new DatabaseWorker();
         }
 
         public void Log(LogItem item)
@@ -32,35 +32,43 @@ namespace MonitorServerApplication.ServerThreading
             _infoMessages.Enqueue(item);
         }
 
-        public void Log(PacketData item)
+        public void SaveData(PacketData item)
         {
             _packets.Enqueue(item);
         }
 
-        public void Save()
+        public void SaveArchiveData(ArchivePacketData item)
         {
-            if (_logItems.Count != 0)
-            {
-                LogItem item;
-                if (_logItems.TryDequeue(out item))
-                {
-                    _writer.SaveItem(item);
+            throw new NotImplementedException();
+        }
 
-                    OnLogItemSaveEvent(new LogItemEventArgs(item));
+        public void Save(CancellationToken ct)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                if (_logItems.Count != 0)
+                {
+                    LogItem item;
+                    if (_logItems.TryDequeue(out item))
+                    {
+                        _worker.SaveItem(item);
+
+                        OnLogItemSaveEvent(new LogItemEventArgs(item));
+                    }
                 }
             }
         }
         public event EventHandler<LogItemEventArgs> LogItemSaveEvent;
 
-        protected virtual void OnLogItemSaveEvent(LogItemEventArgs e)
+        private void OnLogItemSaveEvent(LogItemEventArgs e)
         {
             EventHandler<LogItemEventArgs> handler = LogItemSaveEvent;
             if (handler != null) handler(this, e);
         }
 
-        internal Settings GetSettings(int settingsType)
+        public ClientSettings GetSettings(SettingsType settingsType)
         {
-            throw new NotImplementedException();
+            return _worker.GetSettings(settingsType);
         }
     }
 }

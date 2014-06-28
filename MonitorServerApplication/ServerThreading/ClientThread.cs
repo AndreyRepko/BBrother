@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using MonitorServerApplication.DB;
 using MonitorServerApplication.Loging;
 using MonitorServerApplication.Packets;
 
@@ -17,14 +18,8 @@ namespace MonitorServerApplication.ServerThreading
         private readonly NetworkStream _clientStream;
         private readonly TcpClient _client;
         private readonly string IP;
-        private ServerWriter _dataWriter;
-
-        /// <summary>
-        ///  Set it to true for thread stop
-        /// </summary>
-        public bool IsShouldFinishWork;
-
-        public bool IsFinished;
+        private readonly IDataWriter _dataWriter;
+        private readonly IDataGetter _dataGetter;
 
         private void Log(string message)
         {
@@ -45,7 +40,7 @@ namespace MonitorServerApplication.ServerThreading
             byte[] b2 = System.Text.Encoding.GetEncoding(1251).GetBytes(OldProtocolConst.Con_OK);
             _clientStream.Write(b2, 0, 2);
             
-            Log("Info message arrived: "+info.Info+' '+info.kod.ToString());
+            Log("Info message arrived: "+info.Info+' '+info.kod);
         }
 
         private void SendSettings()
@@ -53,26 +48,28 @@ namespace MonitorServerApplication.ServerThreading
             Log("Send settings");
             var dataSize = new byte[4];
             _clientStream.Read(dataSize, 0, 4);
-            int iDataSize = BitConverter.ToInt32(dataSize, 0);
+            var iDataSize = BitConverter.ToInt32(dataSize, 0);
             
             if (iDataSize!=4)
-                throw new SystemException("Panicum! SendSettings failed couse size is wrong");
+                throw new Exception("Panicum! SendSettings failed because size is wrong");
 
-            var settingsType = new byte[iDataSize];
-            _clientStream.Read(settingsType, 0, iDataSize);
+            var rawSettingsType = new byte[iDataSize];
+            _clientStream.Read(rawSettingsType, 0, iDataSize);
 
-            int iSettingsType = BitConverter.ToInt32(settingsType, 0);
-            
+            var settingsType = (SettingsType)BitConverter.ToInt32(rawSettingsType, 0);
 
-            var settingsSize = new byte[4];
-            //settingsSize[0] = 1;
+            var settings = _dataGetter.GetSettings(settingsType);
+
+            //Send count of settings we would like to send
+            var settingsSize = BitConverter.GetBytes(settings.Settings.Count);
+            Debug.Assert(settingsSize.Length == 4, "Length is incorrect in Count to Byte[] convertation");
             _clientStream.Write(settingsSize, 0, 4);
-        
-            Thread.Sleep(5);
 
-            var settings = _dataWriter.GetSettings(iSettingsType);
-            //TODO: Write sttings sendong block
-            //clData->SendSettings(count);
+            var byteSettings = DataEncoder.EncodeSettings(settings);
+            var byteSettingsSize = BitConverter.GetBytes(byteSettings.Length);
+            _clientStream.Write(byteSettingsSize, 0, 4);
+            _clientStream.Write(byteSettings, 0, byteSettings.Length);
+
 
             var confirmation = new byte[2];
             _clientStream.Read(confirmation, 0, 2);
@@ -111,9 +108,9 @@ namespace MonitorServerApplication.ServerThreading
             var packetData = new byte[iDataSize];
             _clientStream.Read(packetData, 0, iDataSize);
 
-            var packet =DataDecoder.PacketDecoder(packetData);
-            _dataWriter.Log(packet);
-            
+            var packet = DataDecoder.PacketDecoder(packetData);
+            _dataWriter.SaveData(packet);
+
             byte[] b2 = System.Text.Encoding.ASCII.GetBytes(OldProtocolConst.Con_OK);
             _clientStream.Write(b2, 0, 2);
         }
@@ -123,7 +120,7 @@ namespace MonitorServerApplication.ServerThreading
             Log("Send files");
             var FilesList = new List<byte[]>();
             
-            //TODO: Obtaine new files somehow
+            //TODO: Obtain new files somehow
             
             int size = 4 + FilesList.Sum(bytese => bytese.Length + 4);
 
@@ -134,7 +131,7 @@ namespace MonitorServerApplication.ServerThreading
             size = FilesList.Count / 2;
             var fileCount = BitConverter.GetBytes(size);
             //кол-во файлов     
-            _clientStream.Write(dataSize, 0, 4);
+            _clientStream.Write(fileCount, 0, 4);
 
             //собсно сами файлы  
             foreach(var _file in FilesList)
@@ -212,9 +209,10 @@ namespace MonitorServerApplication.ServerThreading
         }
 
         // Конструктор класса. Ему нужно передавать принятого клиента от TcpListener
-        public ClientThread(TcpClient client, ref ServerWriter writer)
+        public ClientThread(TcpClient client, IDataWriter writer, IDataGetter dataGetter)
         {
             _dataWriter = writer;
+            _dataGetter = dataGetter;
 
             _client = client;
             _clientStream = client.GetStream();
@@ -246,9 +244,9 @@ namespace MonitorServerApplication.ServerThreading
             }
         }
 
-        public void Execute()
+        public void Execute(CancellationToken ct)
         {
-            while (!IsShouldFinishWork)
+            while (!ct.IsCancellationRequested)
             {
                 try
                 {
@@ -262,24 +260,23 @@ namespace MonitorServerApplication.ServerThreading
                     int iSignature = BitConverter.ToInt32(signature, 0);
                     switch (iSignature)
                     {
-                        // завершение работы
+                            // Connection end
                         case OldProtocolConst.Con_End:
-                            IsFinished = true;
-                            IsShouldFinishWork = true;
                             DoConnectionEnd();
-                            break;
-                        // оперативные данные.    
+                            _client.Close();
+                            return;
+                            // Data by timer or by window change
                         case OldProtocolConst.Con_Data_Timer:
                             GetPacketData(true);
                             break;
                         case OldProtocolConst.Con_Data_WindChng:
                             GetPacketData(false);
                             break;
-                        //информационное актуальное сообщение
+                            //Information message
                         case OldProtocolConst.Con_Info_Msg:
                             GetInfoMessage();
                             break;
-                        //кусок архива
+                            //Part of the archive TODO: Do it :)
                         case OldProtocolConst.Con_Data_Archive:
                             throw new SystemException("Not implement yet");
 
@@ -420,14 +417,17 @@ namespace MonitorServerApplication.ServerThreading
 
                             #endregion
 
+                            // Request for the new files from client (update service)
                         case OldProtocolConst.Con_File:
                             SendFiles();
                             break;
+                            //Settings requirement
                         case OldProtocolConst.Con_Sett_Reqest:
                             SendSettings();
                             break;
                         default:
                             //TODO: LOg something here
+                            Log("Thread got strange constant from the client: " + iSignature);
                             throw new SystemException("Not implement yet" + iSignature);
                     }
                 }
@@ -435,13 +435,17 @@ namespace MonitorServerApplication.ServerThreading
                 {
                     //TODO: log exception to the log )
                     Log("Thread are dead by IOException" + e.Message);
-                    break;
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    Log("Client die because of exception: " + e.Message);
+                    throw;
                 }
             }
 
             // Закроем соединение
             _client.Close();
-            IsFinished = true;
         }
 
     }

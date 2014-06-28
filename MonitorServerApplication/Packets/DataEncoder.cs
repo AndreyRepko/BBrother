@@ -1,4 +1,5 @@
 ﻿using System;
+using MonitorServerApplication.DB;
 using MonitorServerApplication.PacketsDefinition;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
@@ -8,11 +9,11 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace MonitorServerApplication.Packets
 {
-    static class DataDecoder
+    static class DataEncoder
     {
         private static readonly KeyParameter Key;
 
-        static DataDecoder()
+        static DataEncoder()
         {
             byte[] bKey = System.Text.Encoding.ASCII.GetBytes("Implict error #56");
             var tiger = new TigerDigest();
@@ -45,31 +46,28 @@ namespace MonitorServerApplication.Packets
 
         }
 
-        private static byte[] ReadBytes(ref int bt, Byte[] mem)
+        private static byte[] WriteBytes(out int bt, Byte[] value, KeyParameter key)
         {
-            if (bt + sizeof(int) > mem.Length)
-                throw new SystemException("Size of string is greater that expected");
+            /*if (bt + sizeof(int) > mem.Length)
+                throw new SystemException("Size of string is greater that expected");*/
 
             var chiper = new CfbDCPCipher(new BlowfishEngine(), 8);
             chiper.Init(false, Key);
 
-            int stringSize = BitConverter.ToInt32(mem, bt);
-
-            if (bt + sizeof(int) + stringSize > mem.Length)
-                throw new SystemException("String is greater that expected");
-
+            /*chiper.ProcessBlock()
             var b = new byte[stringSize - 1];
             Array.Copy(mem, bt + 4, b, 0, stringSize - 1);
             byte[] bDecoded = Base64.Decode(b);
             var decodedBytes = new byte[bDecoded.Length];
             chiper.ProcessBlock(bDecoded, 0, decodedBytes, 0);
-            bt += stringSize + 4;
-            return decodedBytes;
+            bt += stringSize + 4;*/
+            bt = -1;
+            return new byte[0];
         }
 
         private static String ReadString(ref int bt, Byte[] mem)
         {
-           return System.Text.Encoding.GetEncoding(1251).GetString(ReadBytes(ref bt, mem));
+            return "";//System.Text.Encoding.GetEncoding(1251).GetString(ReadBytes(ref bt, mem));
         }
 
         private static int ReadInt(ref int bt, Byte[] mem)
@@ -123,7 +121,7 @@ namespace MonitorServerApplication.Packets
         {
             var packet = new PacketData();
             int bt = 0;
-            packet.TaskId = ReadInt(ref bt, packetData);
+            /*packet.TaskId = ReadInt(ref bt, packetData);
             packet.NameExe = ReadString(ref bt, packetData);
             packet.NewExe = ReadString(ref bt, packetData);
             packet.CurUser = ReadString(ref bt, packetData);
@@ -136,9 +134,62 @@ namespace MonitorServerApplication.Packets
             packet.Caption = ReadString(ref bt, packetData);
             packet.Screenshot = ReadBytes(ref bt, packetData);
             packet.ExePath = ReadString(ref bt, packetData);
-            packet.ActiveTime = ReadDateTime(ref bt, packetData);
+            packet.ActiveTime = ReadDateTime(ref bt, packetData);*/
 
             return packet;
+        }
+
+        public static byte[] EncodeSettings(ClientSettings settings)
+        {
+            if (settings == null) throw new ArgumentNullException("settings");
+            string ks = "ReadNewSettings2Connection_Request";
+
+            byte[] bKey = System.Text.Encoding.ASCII.GetBytes(ks);
+            var tiger = new TigerDigest();
+            tiger.BlockUpdate(bKey, 0, bKey.Length);
+
+            var bb = new byte[24];
+            tiger.DoFinal(bb, 0);
+
+            var key = new KeyParameter(bb);
+            int size;
+            return  new byte[0];
+            /*AnsiString sstr;
+
+            TDCP_blowfish* bf;
+            TDCP_tiger* tg;
+
+            bf = new TDCP_blowfish(0);
+            tg = new TDCP_tiger(0);
+
+            for (int i = 0; i < this->sett->Count; )
+            {
+                bf->InitStr(ks, tg->ClassType());
+
+                sstr = bf->EncryptString(this->sett->Strings[i++]);
+                size = sstr.Length();
+
+                if (WriteData(clSock, (char*)&size, sizeof(size)) != 0)
+                {
+                    break;
+                }
+                if (WriteData(clSock, sstr.c_str(), size) != 0)
+                    break;
+
+                bf->InitStr(ks, tg->ClassType());
+
+                sstr = bf->EncryptString(this->sett->Strings[i++]);
+                size = sstr.Length();
+
+                if (WriteData(clSock, (char*)&size, sizeof(size)) != 0)
+                    break;
+
+                if (WriteData(clSock, sstr.c_str(), size) != 0)
+                    break;
+            }
+            this->sett->Clear();
+            delete bf;
+            delete tg;*/
         }
     }
 }

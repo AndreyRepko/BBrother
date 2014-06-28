@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MonitorServerApplication
 {
-    internal class OldProtocolConst
+    internal static class OldProtocolConst
     {
 //Максимальное количество передаваемых файлов
         public const Int32 MAX_NUMB_FILES = 50;

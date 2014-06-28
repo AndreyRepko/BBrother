@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MonitorServerApplication.Loging
 {
-    public class LogItem
+    public struct LogItem
     {
         public DateTime Time;
         public string Message;
