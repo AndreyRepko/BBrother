@@ -7,7 +7,7 @@ using MonitorServerApplication.DB;
 
 namespace MonitorServerApplication.ServerThreading
 {
-    class InfoDBWriter:DatabaseWriter
+    class InfoDbWorker:DatabaseWorker
     {
     }
 }
