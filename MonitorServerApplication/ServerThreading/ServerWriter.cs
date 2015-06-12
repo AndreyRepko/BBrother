@@ -4,6 +4,7 @@ using System.Threading;
 using MonitorServerApplication.DB;
 using MonitorServerApplication.Loging;
 using MonitorServerApplication.PacketsDefinition;
+using MonitorServerApplication.Properties;
 
 namespace MonitorServerApplication.ServerThreading
 {
