@@ -47,8 +47,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Npgsql">
-      <HintPath>..\..\..\..\Bin\Npgsql2.0.12.0-bin-ms.net4.0\Npgsql.dll</HintPath>
     <Reference Include="crypto">
       <HintPath>..\..\..\Org.BouncyCastle.Utilities\crypto\bin\Debug\crypto.dll</HintPath>
     </Reference>
