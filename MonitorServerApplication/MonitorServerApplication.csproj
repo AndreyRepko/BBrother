@@ -47,6 +47,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto, Version=1.7.4137.9688, Culture=neutral, PublicKeyToken=a4292a325f69b123, processorArchitecture=MSIL">
+      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Npgsql">
       <HintPath>..\..\..\..\Bin\Npgsql2.0.12.0-bin-ms.net4.0\Npgsql.dll</HintPath>
     </Reference>
@@ -64,6 +68,7 @@
   <ItemGroup>
     <Compile Include="DB\ClientSettings.cs" />
     <Compile Include="Packets\DataEncoder.cs" />
+    <Compile Include="Packets\OldCryptMode\CfbDCPCipher.cs" />
     <Compile Include="ServerThreading\IDataGetter.cs" />
     <Compile Include="ServerThreading\IDataWriter.cs" />
     <Compile Include="Loging\LogItem.cs" />
@@ -101,6 +106,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <None Include="ClassDiagram1.cd" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -135,12 +141,6 @@
     <Content Include="crypto.dll" />
     <Content Include="Mono.Security.dll" />
     <Content Include="Npgsql.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\3DParty\Org.BouncyCastle.Utilities\crypto\crypto.csproj">
-      <Project>{38872a5f-e87e-4fad-b109-8eb7b2e6a4a0}</Project>
-      <Name>crypto</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
