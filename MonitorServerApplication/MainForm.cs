@@ -77,7 +77,7 @@ namespace MonitorServerApplication
 
             var DBData = new ServerWriter();
             DBData.LogItemSaveEvent += NewLogEvent;
-            (new Task(() => ServerMainThread.DoAcceptConnectionsAsync(5555, DBData, DBData, cts.Token), cts.Token)).Start();
+            (new Task(() => ServerMainThread.DoAcceptConnections(5555, DBData, DBData, cts.Token), cts.Token)).Start();
             bStart.Enabled = false;
             bStop.Enabled = true;
 
