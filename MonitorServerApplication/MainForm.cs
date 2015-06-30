@@ -61,7 +61,7 @@ namespace MonitorServerApplication
                     SetItemInvoke(item);
                 }
                 //We don't like to have  
-                Thread.Sleep(1);
+                Thread.Sleep(10);
             }
 
         }

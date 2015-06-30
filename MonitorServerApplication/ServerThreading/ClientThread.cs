@@ -209,7 +209,7 @@ namespace MonitorServerApplication.ServerThreading
             _client = client;
             _clientStream = client.GetStream();
 
-            _clientStream.ReadTimeout = 1000;
+            _clientStream.ReadTimeout = 30*1000;
 
             IP = ((IPEndPoint) _client.Client.RemoteEndPoint).Address.ToString();
 

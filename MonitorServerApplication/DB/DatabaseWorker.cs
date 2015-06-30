@@ -16,9 +16,9 @@ namespace MonitorServerApplication.DB
         {
             var connectionParams = new NpgsqlConnectionStringBuilder();
             connectionParams.Host = "127.0.0.1";
-            connectionParams.UserName = "bbAdmin";
+            connectionParams.UserName = "bbadmin";
             connectionParams.Password = "qwerty";
-            connectionParams.Database = "BigBrotherDB";
+            connectionParams.Database = "bbrother";
             _pgConnect = new NpgsqlConnection(connectionParams.ConnectionString);
             _pgConnect.Open();
         }

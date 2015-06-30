@@ -56,7 +56,7 @@ namespace MonitorServerApplication.Packets
             else
                 chiper.Init(true, Key);
 
-            var encodedBytes = new byte[value.Length * 2];
+            var encodedBytes = new byte[value.Length];
             var totalBytes = chiper.ProcessBlock(value, 0, encodedBytes, 0);
 
             var b = new byte[totalBytes];
@@ -157,7 +157,7 @@ namespace MonitorServerApplication.Packets
             foreach (var sett in settings.Settings)
             {
                 yield return DataEncoder.EncodeString(sett.FieldName, key);
-                yield return DataEncoder.EncodeString(sett.StringValue, key);
+                yield return DataEncoder.EncodeString(sett.GetStringValue(), key);
             }
         }
     }

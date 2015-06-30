@@ -18,10 +18,10 @@ namespace BBFrontend
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public sealed partial class MainWindow : Window, IDisposable
     {
-        private Boolean IsConnected = false;
-        private Npgsql.NpgsqlConnection PG;
+        private Boolean _isConnected = false;
+        private Npgsql.NpgsqlConnection _pgConnection;
 
         public MainWindow()
         {
@@ -30,22 +30,22 @@ namespace BBFrontend
 
         private void ConnectButtonClick(object sender, RoutedEventArgs e)
         {
-            if (!IsConnected)
+            if (!_isConnected)
             {
                 var pg_con = new Npgsql.NpgsqlConnectionStringBuilder();
                 pg_con.Host = "127.0.0.1";
                 pg_con.UserName = "bbrother_admin";
                 pg_con.Password = "qwerty";
                 pg_con.Database = "bbrother";
-                PG = new Npgsql.NpgsqlConnection(pg_con.ConnectionString);
-                PG.Open();
-                IsConnected = true;
+                _pgConnection = new Npgsql.NpgsqlConnection(pg_con.ConnectionString);
+                _pgConnection.Open();
+                _isConnected = true;
                 ConnectButton.Content = "Diconnect";
             }
             else
             {
-                IsConnected = false;
-                PG.Close();
+                _isConnected = false;
+                _pgConnection.Close();
                 ConnectButton.Content = "Connect to DB...";
             }
         }
@@ -53,10 +53,16 @@ namespace BBFrontend
         private void RefreshButtonClick(object sender, RoutedEventArgs e)
         {
             var pgQuery = new Npgsql.NpgsqlCommand("SELECT * FROM info_log");
-            pgQuery.Connection = PG;
+            pgQuery.Connection = _pgConnection;
             var reader = pgQuery.ExecuteReader();
             ServerLogGrid.ItemsSource = reader;
             ServerLogGrid.Items.Refresh();
+        }
+
+        public void Dispose()
+        {
+            if (_pgConnection!=null)
+                _pgConnection.Dispose();
         }
     }
 }

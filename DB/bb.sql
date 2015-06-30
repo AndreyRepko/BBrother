@@ -1,6 +1,17 @@
 --
 -- PostgreSQL database dump
 --
+DROP DATABASE IF EXISTS bbrother;
+DROP ROLE IF EXISTS bbAdmin;
+CREATE DATABASE bbrother;
+
+CREATE ROLE bbAdmin LOGIN
+  ENCRYPTED PASSWORD 'md54689246406868d651879b6520c1bcee6'
+  NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION;
+  
+ALTER ROLE bbAdmin WITH PASSWORD 'qwerty';
+
+\connect bbrother
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -30,10 +41,10 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
--- Name: info_log; Type: TABLE; Schema: public; Owner: bbrother_admin; Tablespace: 
+-- Name: event_log; Type: TABLE; Schema: public; Owner: bbrother; Tablespace: 
 --
 
-CREATE TABLE info_log (
+CREATE TABLE event_log (
     id bigint NOT NULL,
     event_time time with time zone,
     ip text,
@@ -43,13 +54,13 @@ CREATE TABLE info_log (
 );
 
 
-ALTER TABLE info_log OWNER TO bbrother_admin;
+ALTER TABLE event_log OWNER TO bbAdmin;
 
 --
--- Name: info_log_id_seq; Type: SEQUENCE; Schema: public; Owner: bbrother_admin
+-- Name: event_log_id_seq; Type: SEQUENCE; Schema: public; Owner: bbrother
 --
 
-CREATE SEQUENCE info_log_id_seq
+CREATE SEQUENCE event_log_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -57,43 +68,43 @@ CREATE SEQUENCE info_log_id_seq
     CACHE 1;
 
 
-ALTER TABLE info_log_id_seq OWNER TO bbrother_admin;
+ALTER TABLE event_log_id_seq OWNER TO bbAdmin;
 
 --
--- Name: info_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: bbrother_admin
+-- Name: event_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: bbrother
 --
 
-ALTER SEQUENCE info_log_id_seq OWNED BY info_log.id;
-
-
---
--- Name: id; Type: DEFAULT; Schema: public; Owner: bbrother_admin
---
-
-ALTER TABLE ONLY info_log ALTER COLUMN id SET DEFAULT nextval('info_log_id_seq'::regclass);
+ALTER SEQUENCE event_log_id_seq OWNED BY event_log.id;
 
 
 --
--- Data for Name: info_log; Type: TABLE DATA; Schema: public; Owner: bbrother_admin
+-- Name: id; Type: DEFAULT; Schema: public; Owner: bbrother
 --
 
-COPY info_log (id, event_time, ip, user_name, event, code) FROM stdin;
+ALTER TABLE ONLY event_log ALTER COLUMN id SET DEFAULT nextval('event_log_id_seq'::regclass);
+
+
+--
+-- Data for Name: event_log; Type: TABLE DATA; Schema: public; Owner: bbrother
+--
+
+COPY event_log (id, event_time, ip, user_name, event, code) FROM stdin;
 1	20:48:35.06113+03	no ip	\N	Server is starting now	\N
 \.
 
 
 --
--- Name: info_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bbrother_admin
+-- Name: event_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bbrother
 --
 
-SELECT pg_catalog.setval('info_log_id_seq', 1, true);
+SELECT pg_catalog.setval('event_log_id_seq', 1, true);
 
 
 --
--- Name: id_pk; Type: CONSTRAINT; Schema: public; Owner: bbrother_admin; Tablespace: 
+-- Name: id_pk; Type: CONSTRAINT; Schema: public; Owner: bbrother; Tablespace: 
 --
 
-ALTER TABLE ONLY info_log
+ALTER TABLE ONLY event_log
     ADD CONSTRAINT id_pk PRIMARY KEY (id);
 
 

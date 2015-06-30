@@ -14,22 +14,27 @@ namespace MonitorServerApplication.DB
     {
         string FieldName { get; }
         string DisplayName { get; }
-        string StringValue { get; } 
+        string GetStringValue();
     }
     
     public class SettingValue<T> : ISettingReadOnly
         where T: IConvertible
     {
         //Could be public if we would like to
-        private T Value;
+        private readonly T Value;
+
+        private readonly Func<T> ValueGetter;
 
         public string FieldName { get; private set; }
 
         public string DisplayName { get; private set; }
 
-        public string StringValue
+        public string GetStringValue()
         {
-            get { return Value.ToString(CultureInfo.InvariantCulture); }
+                var value = ValueGetter == null ? Value : ValueGetter();
+                if (value == null)
+                    throw new ArgumentNullException("Value", string.Format("Field name: {0}, Display name {1}", FieldName, DisplayName));
+                return value.ToString(CultureInfo.InvariantCulture);
         }
 
 
@@ -39,9 +44,14 @@ namespace MonitorServerApplication.DB
             FieldName = fieldName;
             Value = defaultValue;
         }
-
+        
+        public SettingValue(string displayName, string fieldName, Func<T> dynamicValue)
+        {
+            DisplayName = displayName;
+            FieldName = fieldName;
+            ValueGetter = dynamicValue;
+        }
     }
-
     
     public class ClientSettings
     {
@@ -70,7 +80,7 @@ namespace MonitorServerApplication.DB
             Settings.Add(new SettingValue<uint>("JPGQuality", "JPEG_QUALITY", 100));
             Settings.Add(new SettingValue<uint>("SnapshotTimeRandomization", "ST_PERIOD_RANDOMIZER", 10)); //%
             Settings.Add(new SettingValue<uint>("OptionsScanTime", "OPTIONS_SCAN_TIME", 60));
-            Settings.Add(new SettingValue<string>("ServerTime", "SERVER_TIME", null));
+            Settings.Add(new SettingValue<string>("ServerTime", "SERVER_TIME", () => DateTime.Now.ToString("yyyy-MM-dd HH-mm-ss")));
             Settings.Add(new SettingValue<bool>("TakeOnlyJPG", "JPG_ONLY", false));
             Settings.Add(new SettingValue<bool>("AllowPrivateRegime", "ALLOW_PRIVATE", true));
             Settings.Add(new SettingValue<uint>("PrivateRegimeTimeLimitation", "PRIVATE_DAY_LIMIT", 60));

@@ -57,6 +57,7 @@ namespace MonitorServerApplication.ServerThreading
                         OnLogItemSaveEvent(new LogItemEventArgs(item));
                     }
                 }
+                Thread.Sleep(10);
             }
         }
         public event EventHandler<LogItemEventArgs> LogItemSaveEvent;
