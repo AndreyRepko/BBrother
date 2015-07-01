@@ -114,6 +114,7 @@
     <Compile Include="DB\PacketDBWriter.cs" />
     <Compile Include="ServerThreading\ServerMainThread.cs" />
     <Compile Include="ServerThreading\ServerWriter.cs" />
+    <Compile Include="ServerThreading\TimingConstants.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>

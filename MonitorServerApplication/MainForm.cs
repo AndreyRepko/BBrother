@@ -51,21 +51,6 @@ namespace MonitorServerApplication
             }
         }
 
-        private void OutputLogToGrid(CancellationToken ct)
-        {
-            while (!ct.IsCancellationRequested)
-            {
-                LogItem item;
-                while (_logItems.TryDequeue(out item))
-                {
-                    SetItemInvoke(item);
-                }
-                //We don't like to have  
-                Thread.Sleep(10);
-            }
-
-        }
-
         void NewLogEvent(Object sender, LogItemEventArgs e)
         {
             SetItemInvoke(e.item);
@@ -85,7 +70,7 @@ namespace MonitorServerApplication
             _DBDataTask.Start();
 
             //Create write to the grid task (it will be dead as cts is fired
-            (new Task(() => OutputLogToGrid(cts.Token), cts.Token)).Start();
+           // (new Task(() => OutputLogToGrid(cts.Token), cts.Token)).Start();
 
         }
 

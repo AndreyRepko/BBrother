@@ -45,7 +45,6 @@ namespace MonitorServerApplication.ServerThreading
 
         private void SendSettings()
         {
-            Log("Send settings");
             var dataSize = new byte[4];
             _clientStream.Read(dataSize, 0, 4);
             var iDataSize = BitConverter.ToInt32(dataSize, 0);
@@ -91,9 +90,8 @@ namespace MonitorServerApplication.ServerThreading
             _clientStream.Write(b2, 0, 2);
         }
 
-        private void GetPacketData(bool wasItTimer)
+        private void GetPacketData()
         {
-            Log(wasItTimer ? "New time packet data" : "New window change packet data");
             var dataSize = new byte[4];
             _clientStream.Read(dataSize, 0, 4);
             int iDataSize = BitConverter.ToInt32(dataSize, 0);
@@ -109,8 +107,7 @@ namespace MonitorServerApplication.ServerThreading
 
         private void SendFiles()
         {
-            Log("Send files");
-            var FilesList = new List<byte[]>();
+          var FilesList = new List<byte[]>();
             
             //TODO: Obtain new files somehow
             
@@ -247,34 +244,59 @@ namespace MonitorServerApplication.ServerThreading
                         Thread.Sleep(10);
                         continue;
                     }
-                    var signature = new byte[4];
-                    _clientStream.Read(signature, 0, 4);
-                    int iSignature = BitConverter.ToInt32(signature, 0);
-                    switch (iSignature)
-                    {
-                            // Connection end
-                        case OldProtocolConst.Con_End:
-                            DoConnectionEnd();
-                            _client.Close();
-                            return;
-                            // Data by timer or by window change
-                        case OldProtocolConst.Con_Data_Timer:
-                            GetPacketData(true);
-                            break;
-                        case OldProtocolConst.Con_Data_WindChng:
-                            GetPacketData(false);
-                            break;
-                            //Information message
-                        case OldProtocolConst.Con_Info_Msg:
-                            GetInfoMessage();
-                            break;
-                            //Part of the archive TODO: Do it :)
-                        case OldProtocolConst.Con_Data_Archive:
-                            throw new SystemException("Not implement yet");
+                    if (ProcessCommand()) return;
+                }
+                catch (IOException e)
+                {
+                    //TODO: log exception to the log )
+                    Log("Thread are dead by IOException" + e.Message);
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    Log("Client die because of exception: " + e.Message);
+                    throw;
+                }
+            }
 
-                            #region ARCHIVE commented
+            // Закроем соединение
+            _client.Close();
+        }
 
-                            /* sComm = AnsiString("Архивное сообщение.");
+        private bool ProcessCommand()
+        {
+            var signature = new byte[4];
+            _clientStream.Read(signature, 0, 4);
+            int iSignature = BitConverter.ToInt32(signature, 0);
+            switch (iSignature)
+            {
+                // Connection end
+                case OldProtocolConst.Con_End:
+                    Log("Connection end received");
+                    DoConnectionEnd();
+                    _client.Close();
+                    return false;
+                // Data by timer or by window change
+                case OldProtocolConst.Con_Data_Timer:
+                    Log("New time packet data");
+                    GetPacketData();
+                    break;
+                case OldProtocolConst.Con_Data_WindChng:
+                    Log("New window change packet data");
+                    GetPacketData();
+                    break;
+                //Information message
+                case OldProtocolConst.Con_Info_Msg:
+                    Log("New info message");
+                    GetInfoMessage();
+                    break;
+                //Part of the archive TODO: Do it :)
+                case OldProtocolConst.Con_Data_Archive:
+                    throw new SystemException("Not implement yet");
+
+                    #region ARCHIVE commented
+
+                    /* sComm = AnsiString("Архивное сообщение.");
                             // Вычитываем количество байт на будущее
                             if( ReadData(clSock, (char*)&tc, 4) == 0 )
                              {
@@ -405,40 +427,26 @@ namespace MonitorServerApplication.ServerThreading
                             IsSend = (WriteData(clSock, Con_OK, 2 ) == 0 );
                             if ( IsShouldFinishWork )  loop_ = false;
                             //конец архивной записи*/
-                            //break;
+                //break;
 
-                            #endregion
+                    #endregion
 
-                            // Request for the new files from client (update service)
-                        case OldProtocolConst.Con_File:
-                            SendFiles();
-                            break;
-                            //Settings requirement
-                        case OldProtocolConst.Con_Sett_Reqest:
-                            SendSettings();
-                            break;
-                        default:
-                            //TODO: LOg something here
-                            Log("Thread got strange constant from the client: " + iSignature);
-                            throw new SystemException("Not implement yet" + iSignature);
-                    }
-                }
-                catch (IOException e)
-                {
-                    //TODO: log exception to the log )
-                    Log("Thread are dead by IOException" + e.Message);
-                    throw;
-                }
-                catch (Exception e)
-                {
-                    Log("Client die because of exception: " + e.Message);
-                    throw;
-                }
+                    // Request for the new files from client (update service)
+                case OldProtocolConst.Con_File:
+                    Log("New file request");
+                    SendFiles();
+                    break;
+                //Settings requirement
+                case OldProtocolConst.Con_Sett_Reqest:
+                    Log("Send settings request");
+                    SendSettings();
+                    break;
+                default:
+                    //TODO: LOg something here
+                    Log("Thread got strange constant from the client: " + iSignature);
+                    throw new SystemException("Not implement yet" + iSignature);
             }
-
-            // Закроем соединение
-            _client.Close();
+            return true;
         }
-
     }
 }

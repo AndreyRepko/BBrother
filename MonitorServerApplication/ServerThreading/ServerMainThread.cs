@@ -10,9 +10,7 @@ namespace MonitorServerApplication.ServerThreading
 {
     public static class ServerMainThread
     {
-        private const int Timeouts = 30 * 1000;
-
-        // Thread signal. 
+       // Thread signal. 
         private static ManualResetEvent _tcpClientConnected;
 
         public static void DoAcceptConnections(int port, IDataWriter writer, IDataGetter reader, CancellationToken ct)
@@ -38,7 +36,7 @@ namespace MonitorServerApplication.ServerThreading
                             listener);
                     }
 
-                    connected = _tcpClientConnected.WaitOne(100);
+                    connected = _tcpClientConnected.WaitOne(TimingConstants.DefaultWaitTime);
                 }
 
             }
@@ -64,8 +62,8 @@ namespace MonitorServerApplication.ServerThreading
             // End the operation
             var client = listener.EndAcceptTcpClient(ar);
 
-            client.ReceiveTimeout = Timeouts;
-            client.SendTimeout = Timeouts;
+            client.ReceiveTimeout = TimingConstants.ClientCommunicationTimeout;
+            client.SendTimeout = TimingConstants.ClientCommunicationTimeout;
             writer.Log(new LogItem("New client is coming!", ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString()));
             try
             {
