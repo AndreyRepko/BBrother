@@ -98,8 +98,8 @@ namespace MonitorServerApplication.Packets
             var msg = new InfoMessage();
             int bt = 0;
 
-            msg.kod = ReadInt(ref bt, data);
-            msg.time = ReadDateTime(ref bt, data);
+            msg.MessageType = ReadInt(ref bt, data);
+            msg.Time = ReadDateTime(ref bt, data);
             msg.IP = ReadString(ref bt, data);
             msg.UserName = ReadString(ref bt, data);
             msg.Info = ReadString(ref bt, data);
@@ -111,8 +111,8 @@ namespace MonitorServerApplication.Packets
             var msg = new InfoMessage();
             int bt = 0;
 
-            msg.kod = ReadInt(ref bt, data);
-            msg.time = ReadDateTime(ref bt, data);
+            msg.MessageType = ReadInt(ref bt, data);
+            msg.Time = ReadDateTime(ref bt, data);
             msg.IP = ReadString(ref bt, data);
             msg.UserName = ReadString(ref bt, data);
             msg.Info = ReadString(ref bt, data);

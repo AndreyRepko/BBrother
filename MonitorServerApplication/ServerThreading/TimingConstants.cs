@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MonitorServerApplication.ServerThreading
+﻿namespace MonitorServerApplication.ServerThreading
 {
     public static class TimingConstants
     {
@@ -12,6 +6,6 @@ namespace MonitorServerApplication.ServerThreading
         
         public const int ClientCommunicationTimeout = 30 * 1000; // in milliseconds
 
-        public const int DefaultWaitTime = 100; //In milliseconds, increasing this time will lead to little bit less overhead on re-waiting, but will increase (like *3-*5 times stop time)
+        public const int DefaultWaitTime = 100; //In milliseconds, increasing this Time will lead to little bit less overhead on re-waiting, but will increase (like *3-*5 times stop Time)
     }
 }

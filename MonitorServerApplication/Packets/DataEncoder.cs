@@ -98,7 +98,7 @@ namespace MonitorServerApplication.Packets
             /*int bt = 0;
 
             msg.kod = ReadInt(ref bt, data);
-            msg.time = ReadDateTime(ref bt, data);
+            msg.Time = ReadDateTime(ref bt, data);
             msg.IP = EncodeString(ref bt, data);
             msg.UserName = EncodeString(ref bt, data);
             msg.Info = EncodeString(ref bt, data);*/
@@ -111,7 +111,7 @@ namespace MonitorServerApplication.Packets
             /*int bt = 0;
 
             msg.kod = ReadInt(ref bt, data);
-            msg.time = ReadDateTime(ref bt, data);
+            msg.Time = ReadDateTime(ref bt, data);
             msg.IP = EncodeString(ref bt, data);
             msg.UserName = EncodeString(ref bt, data);
             msg.Info = EncodeString(ref bt, data);*/

@@ -40,7 +40,7 @@ namespace MonitorServerApplication.ServerThreading
             byte[] b2 = System.Text.Encoding.GetEncoding(1251).GetBytes(OldProtocolConst.Con_OK);
             _clientStream.Write(b2, 0, 2);
             
-            Log("Info message arrived: "+info.Info+' '+info.kod);
+            Log("Info message arrived: "+info.Info+' '+info.MessageType);
         }
 
         private void SendSettings()
@@ -244,7 +244,7 @@ namespace MonitorServerApplication.ServerThreading
                         Thread.Sleep(10);
                         continue;
                     }
-                    if (ProcessCommand()) return;
+                    if (!ProcessCommand()) return;
                 }
                 catch (IOException e)
                 {
@@ -278,7 +278,7 @@ namespace MonitorServerApplication.ServerThreading
                     return false;
                 // Data by timer or by window change
                 case OldProtocolConst.Con_Data_Timer:
-                    Log("New time packet data");
+                    Log("New Time packet data");
                     GetPacketData();
                     break;
                 case OldProtocolConst.Con_Data_WindChng:

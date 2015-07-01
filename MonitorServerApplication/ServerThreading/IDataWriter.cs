@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MonitorServerApplication.Loging;
+﻿using MonitorServerApplication.Loging;
+using MonitorServerApplication.Packets;
 using MonitorServerApplication.PacketsDefinition;
 
-namespace MonitorServerApplication.DB
+namespace MonitorServerApplication.ServerThreading
 {
     public interface IDataWriter
     {

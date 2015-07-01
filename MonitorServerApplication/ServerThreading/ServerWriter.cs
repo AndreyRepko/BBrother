@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using MonitorServerApplication.DB;
 using MonitorServerApplication.Loging;
+using MonitorServerApplication.Packets;
 using MonitorServerApplication.PacketsDefinition;
 
 namespace MonitorServerApplication.ServerThreading
@@ -79,7 +80,23 @@ namespace MonitorServerApplication.ServerThreading
 
         private void SaveAllData()
         {
-            if (_logItems.Count != 0)
+            SaveLogItems();
+            SaveInfoItems();
+        }
+
+        private void SaveInfoItems()
+        {
+            while (_infoMessages.Count != 0)
+            {
+                InfoMessage item;
+                if (_infoMessages.TryDequeue(out item))
+                    _worker.SaveItem(item);
+            }
+        }
+
+        private void SaveLogItems()
+        {
+            while (_logItems.Count != 0)
             {
                 LogItem item;
                 if (_logItems.TryDequeue(out item))
